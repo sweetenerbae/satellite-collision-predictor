@@ -1,8 +1,7 @@
 from data.data_provider import fetch_satellites
 from satellite import Satellite
-from predictor import find_closest_approach, refine_closest_approach
-from datetime import datetime, timezone
-from datetime import timedelta
+from predictor import refine_closest_approach, find_conjunctions
+from datetime import datetime, timezone, timedelta
 from sgp4.api import jday
 
 satellites_data = fetch_satellites()
@@ -29,17 +28,28 @@ jd, fr = jday(
     now.second + now.microsecond / 1_000_000
 )
 
-#conjunction candidate
-pair, distance, minute = find_closest_approach(satellites, jd,fr)
+conjunctions = find_conjunctions(
+    satellites,
+    jd,
+    fr,
+    threshold_km=50
+)
 
-sat1, sat2 = pair
+conjunctions.sort(key=lambda event: event["distance"])
 
-precise_distance, second = refine_closest_approach(sat1, sat2, jd, fr, minute)
+print("Conjunction candidates:", len(conjunctions))
 
-tca = now + timedelta(seconds=second)
+for event in conjunctions:
+    sat1 = event["sat1"]
+    sat2 = event["sat2"]
+    coarse_minute = event["minute"]
 
-print("Closest approach:")
-print(sat1.name, "<->", sat2.name)
-print("coarse distance:", distance, "km")
-print("precise distance:", precise_distance, "km")
-print("TCA UTC:", tca.strftime("%Y-%m-%d %H:%M:%S UTC"))
+    precise_distance, precise_second = refine_closest_approach(sat1, sat2, jd, fr, coarse_minute)
+
+    tca = now + timedelta(seconds=precise_second)
+
+    print()
+    print(sat1.name, "<->", sat2.name)
+    print("coarse distance:", round(event["distance"], 3), "km")
+    print("precise distance:", round(precise_distance, 3), "km")
+    print("TCA UTC:", tca.strftime("%Y-%m-%d %H:%M:%S UTC"))
