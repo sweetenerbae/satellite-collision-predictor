@@ -1,5 +1,6 @@
 from sgp4.api import Satrec
 from sgp4 import omm
+import math
 
 class Satellite:
     def __init__(self, data):
@@ -32,3 +33,6 @@ class Satellite:
         earth_radius = 6378.137
 
         return semi_major_axis - earth_radius
+
+    def inclination_deg(self):
+        return math.degrees(self.satrec.inclo)

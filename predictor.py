@@ -52,6 +52,13 @@ def find_conjunctions(satellites, jd, fr, start_time, threshold_km=50, minutes=1
 
             if abs(altitude1 - altitude2) > 100:
                 continue
+
+            inclination1 = sat1.inclination_deg()
+            inclination2 = sat2.inclination_deg()
+
+            if abs(inclination1 - inclination2) > 10:
+                continue
+
             checked_pairs += 1
 
             min_distance = float("inf")
