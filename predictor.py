@@ -41,11 +41,18 @@ def refine_closest_approach(sat1, sat2, jd, fr, coarse_minute):
 
 def find_conjunctions(satellites, jd, fr, start_time, threshold_km=50, minutes=1440):
     events = []
+    checked_pairs = 0
 
     for i in range(len(satellites)):
         for j in range(i + 1, len(satellites)):
             sat1 = satellites[i]
             sat2 = satellites[j]
+            altitude1 = sat1.approximate_altitude_km()
+            altitude2 = sat2.approximate_altitude_km()
+
+            if abs(altitude1 - altitude2) > 100:
+                continue
+            checked_pairs += 1
 
             min_distance = float("inf")
             closest_minute = None
@@ -102,4 +109,5 @@ def find_conjunctions(satellites, jd, fr, start_time, threshold_km=50, minutes=1
             events.append(event)
 
     events.sort(key=lambda event: event.distance_km)
+    print("Pairs after altitude filter:", checked_pairs)
     return events

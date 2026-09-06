@@ -23,3 +23,12 @@ class Satellite:
             raise RuntimeError(f"SGP4 error {error} for {self.name}")
         # где находится, как жвижется
         return position, velocity
+
+    def approximate_altitude_km(self):
+        mu = 398600.4418
+        mean_motion_rad_s = self.satrec.no_kozai / 60.0
+        semi_major_axis = ( mu / (mean_motion_rad_s ** 2) ) ** (1 / 3)
+
+        earth_radius = 6378.137
+
+        return semi_major_axis - earth_radius
