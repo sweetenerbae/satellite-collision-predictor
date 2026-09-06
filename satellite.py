@@ -15,3 +15,11 @@ class Satellite:
             raise RuntimeError(f"SGP4 error {error} for {self.name}")
 
         return position
+
+    def state_at(self, jd, fr):
+        error, position, velocity = self.satrec.sgp4(jd, fr)
+
+        if error != 0:
+            raise RuntimeError(f"SGP4 error {error} for {self.name}")
+        # где находится, как жвижется
+        return position, velocity
