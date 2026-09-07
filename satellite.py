@@ -6,6 +6,10 @@ class Satellite:
     def __init__(self, data):
         self.name = data["OBJECT_NAME"]
         self.norad_id = data["NORAD_CAT_ID"]
+        self.epoch = data["EPOCH"]
+        self.inclination = data["INCLINATION"]
+        self.eccentricity = data["ECCENTRICITY"]
+        self.mean_motion = data["MEAN_MOTION"]
         self.satrec = Satrec()
         omm.initialize(self.satrec, data)
 
