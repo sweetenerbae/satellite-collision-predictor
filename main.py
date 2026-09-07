@@ -1,6 +1,6 @@
 from data.data_provider import fetch_satellites
 from satellite import Satellite
-from predictor import find_conjunctions, build_spatial_grid, screening_radius_km, neighbor_radius_for_screening, find_candidate_pairs
+from predictor import find_conjunctions
 from datetime import datetime, timezone
 from sgp4.api import jday
 
@@ -28,34 +28,15 @@ jd, fr = jday(
     now.second + now.microsecond / 1_000_000
 )
 
-candidates = find_candidate_pairs(
-    satellites,
-    jd,
-    fr
+conjunctions = find_conjunctions(
+    satellites=satellites,
+    jd=jd,
+    fr=fr,
+    start_time=now,
+    threshold_km=50.0
 )
 
-print("Candidate pairs:", len(candidates))
-
-for pair in candidates:
-    print(pair)
-
-cell_size_km = 100.0
-timestep_seconds = 60
-
-radius_km = screening_radius_km(
-    threshold_km=50.0,
-    timestep_seconds=timestep_seconds
-)
-
-neighbor_radius = neighbor_radius_for_screening(
-    screening_radius=radius_km,
-    cell_size_km=cell_size_km
-)
-
-print("Screening radius:", radius_km)
-print("Neighbor radius:", neighbor_radius)
-
-print("Conjunction candidates:", len(conjunctions))
+print("\nConjunction candidates:", len(conjunctions))
 
 for event in conjunctions:
     print()
@@ -68,17 +49,5 @@ for event in conjunctions:
     )
     print(
         "TCA UTC:",
-        event.tca.strftime("%Y-%m-%d %H:%M:%S UTC")
+        event.tca.strftime("%Y-%m-%d %H:%M:%S.%f UTC")
     )
-
-grid = build_spatial_grid(
-    satellites,
-    jd,
-    fr
-)
-
-print("Occupied cells:", len(grid))
-
-for cell, objects in grid.items():
-    if len(objects) > 1:
-        print(cell, [sat.name for sat in objects])

@@ -2,7 +2,7 @@ import math
 from datetime import timedelta
 from conjunction import ConjunctionEvent
 from scipy.spatial import cKDTree
-
+from scipy.optimize import minimize_scalar
 # расстояние
 def distance_between(pos1, pos2):
     dx = pos2[0] - pos1[0]
@@ -18,163 +18,6 @@ def relative_velocity(vel1, vel2):
     dvz = vel2[2] - vel1[2]
 
     return math.sqrt(dvx ** 2 + dvy ** 2 + dvz ** 2)
-
-def refine_closest_approach(sat1, sat2, jd, fr, coarse_minute):
-    min_distance = float("inf")
-    best_second = None
-
-    start_second = coarse_minute * 60 - 60
-    end_second = coarse_minute * 60 + 60
-
-    for second in range(start_second, end_second + 1):
-        current_fr = fr + second / 86400.0
-
-        pos1 = sat1.position_at(jd, current_fr)
-        pos2 = sat2.position_at(jd, current_fr)
-
-        distance = distance_between(pos1, pos2)
-
-        if distance < min_distance:
-            min_distance = distance
-            best_second = second
-
-    return min_distance, best_second
-
-#narrow phase
-def find_conjunctions(satellites, jd, fr, start_time, threshold_km=50, minutes=1440):
-    events = []
-    checked_pairs = 0
-
-    for i in range(len(satellites)):
-        for j in range(i + 1, len(satellites)):
-            sat1 = satellites[i]
-            sat2 = satellites[j]
-            altitude1 = sat1.approximate_altitude_km()
-            altitude2 = sat2.approximate_altitude_km()
-
-            if abs(altitude1 - altitude2) > 100:
-                continue
-
-            checked_pairs += 1
-
-            min_distance = float("inf")
-            closest_minute = None
-
-            for minute in range(minutes):
-                current_fr = fr + minute / 1440.0
-
-                pos1 = sat1.position_at(jd, current_fr)
-                pos2 = sat2.position_at(jd, current_fr)
-
-                distance = distance_between(pos1, pos2)
-
-                if distance < 1.0:
-                    continue
-
-                if distance < min_distance:
-                    min_distance = distance
-                    closest_minute = minute
-
-            if closest_minute is None:
-                continue
-
-            if min_distance >= threshold_km:
-                continue
-
-            precise_distance, precise_second = refine_closest_approach(
-                sat1,
-                sat2,
-                jd,
-                fr,
-                closest_minute
-            )
-
-            tca_fr = fr + precise_second / 86400.0
-
-            _, velocity1 = sat1.state_at(jd, tca_fr)
-            _, velocity2 = sat2.state_at(jd, tca_fr)
-
-            rel_velocity = relative_velocity(
-                velocity1,
-                velocity2
-            )
-
-            tca = start_time + timedelta(seconds=precise_second)
-
-            event = ConjunctionEvent(
-                sat1=sat1,
-                sat2=sat2,
-                distance_km=precise_distance,
-                relative_velocity_km_s=rel_velocity,
-                tca=tca
-            )
-
-            events.append(event)
-
-    events.sort(key=lambda event: event.distance_km)
-    print("Pairs after altitude filter:", checked_pairs)
-    return events
-
-def spatial_cell(position, cell_size_km=100.0):
-    x, y, z = position
-
-    return (
-        int(x // cell_size_km),
-        int(y // cell_size_km),
-        int(z // cell_size_km)
-    )
-
-def build_spatial_grid(satellites, jd, fr, cell_size_km=100.0):
-    grid = {}
-
-    for satellite in satellites:
-        position = satellite.position_at(jd, fr)
-
-        cell = spatial_cell(position, cell_size_km)
-
-        if cell not in grid:
-            grid[cell] = []
-
-        grid[cell].append(satellite)
-
-    return grid
-
-def neighbouring_cells(cell, radius=1):
-    x, y, z = cell
-    neighbours = []
-
-    for dx in range(-radius, radius + 1):
-      for dy in range(-radius, radius + 1):
-         for dz in range(-radius, radius + 1):
-             neighbours.append((x+dx, y+dy,z+dz))
-    return neighbours
-
-def candidate_pairs_from_grid(grid, neighbor_radius=1):
-    pairs = set()
-
-    for cell, satellites in grid.items():
-        nearby_cells = neighbouring_cells(
-            cell,
-            radius=neighbor_radius
-        )
-
-        for nearby_cell in nearby_cells:
-            nearby_satellites = grid.get(nearby_cell, [])
-
-            for sat1 in satellites:
-                for sat2 in nearby_satellites:
-                    if sat1 is sat2:
-                        continue
-
-                    pair = tuple(
-                        sorted(
-                            (sat1.norad_id, sat2.norad_id)
-                        )
-                    )
-
-                    pairs.add(pair)
-
-    return pairs
 
 #broad phase
 def find_candidate_pairs(
@@ -215,7 +58,16 @@ def find_candidate_pairs(
                 candidate_pairs[pair] = []
 
             candidate_pairs[pair].append(minute)
-    return candidate_pairs
+
+    screening_windows = {}
+
+    for pair, minutes_found in candidate_pairs.items():
+        screening_windows[pair] = compress_minutes_to_windows(
+            minutes_found,
+            timestep_minutes
+        )
+
+    return screening_windows
 
 def screening_radius_km(
     threshold_km,
@@ -223,32 +75,6 @@ def screening_radius_km(
     max_relative_velocity_km_s=15.0
 ):
     return threshold_km + max_relative_velocity_km_s * timestep_seconds
-
-
-def neighbor_radius_for_screening(
-    screening_radius,
-    cell_size_km
-):
-    return math.ceil(screening_radius / cell_size_km)
-
-def screening_radius_km(
-    threshold_km,
-    timestep_seconds,
-    max_relative_velocity_km_s=15.0
-):
-    return (
-        threshold_km
-        + max_relative_velocity_km_s * timestep_seconds
-    )
-
-def neighbor_radius_for_screening(
-    screening_radius,
-    cell_size_km
-):
-    return math.ceil(
-        screening_radius / cell_size_km
-    )
-
 
 def candidate_pairs_at_time(
     satellites,
@@ -282,3 +108,171 @@ def candidate_pairs_at_time(
         candidate_pairs.add(pair)
 
     return candidate_pairs
+
+def compress_minutes_to_windows(minutes, timestep_minutes=1):
+    if not minutes:
+        return []
+
+    minutes = sorted(minutes)
+
+    windows = []
+
+    start = minutes[0]
+    end = minutes[0]
+
+    for minute in minutes[1:]:
+        if minute - end <= timestep_minutes:
+            end = minute
+        else:
+            windows.append((start, end))
+            start = minute
+            end = minute
+
+    windows.append((start, end))
+
+    return windows
+
+def analyze_screening_window(
+    sat1,
+    sat2,
+    jd,
+    fr,
+    window_start_minute,
+    window_end_minute
+):
+    start_second = max(
+        0,
+        window_start_minute * 60 - 60
+    )
+
+    end_second = (
+        window_end_minute * 60 + 60
+    )
+
+    def distance_at_second(second):
+        current_fr = fr + second / 86400.0
+
+        pos1 = sat1.position_at(jd, current_fr)
+        pos2 = sat2.position_at(jd, current_fr)
+
+        return distance_between(pos1, pos2)
+
+    result = minimize_scalar(
+        distance_at_second,
+        bounds=(start_second, end_second),
+        method="bounded"
+    )
+
+    precise_second = result.x
+    precise_distance = result.fun
+
+    return precise_distance, precise_second
+def is_persistent_co_moving_pair(
+    sat1,
+    sat2,
+    jd,
+    fr,
+    check_minutes=10,
+    max_distance_km=1.0,
+    max_relative_velocity_km_s=0.01
+):
+    sample_minutes = [0, check_minutes // 2, check_minutes]
+
+    for minute in sample_minutes:
+        current_fr = fr + minute / 1440.0
+
+        pos1, vel1 = sat1.state_at(jd, current_fr)
+        pos2, vel2 = sat2.state_at(jd, current_fr)
+
+        distance = distance_between(pos1, pos2)
+        rel_velocity = relative_velocity(vel1, vel2)
+
+        if distance > max_distance_km:
+            return False
+
+        if rel_velocity > max_relative_velocity_km_s:
+            return False
+
+    return True
+
+def find_conjunctions(
+    satellites,
+    jd,
+    fr,
+    start_time,
+    threshold_km=50.0,
+    minutes=1440,
+    timestep_minutes=1
+):
+    events = []
+
+    satellites_by_id = {
+        satellite.norad_id: satellite
+        for satellite in satellites
+    }
+
+    screening_windows = find_candidate_pairs(
+        satellites=satellites,
+        jd=jd,
+        fr=fr,
+        threshold_km=threshold_km,
+        minutes=minutes,
+        timestep_minutes=timestep_minutes
+    )
+
+    for pair, windows in screening_windows.items():
+        norad_id_1, norad_id_2 = pair
+
+        sat1 = satellites_by_id[norad_id_1]
+        sat2 = satellites_by_id[norad_id_2]
+
+        if is_persistent_co_moving_pair(
+                sat1,
+                sat2,
+                jd,
+                fr
+        ):
+            continue
+
+        for window_start, window_end in windows:
+            precise_distance, precise_second = analyze_screening_window(
+                sat1=sat1,
+                sat2=sat2,
+                jd=jd,
+                fr=fr,
+                window_start_minute=window_start,
+                window_end_minute=window_end
+            )
+
+            if precise_distance >= threshold_km:
+                continue
+
+            tca_fr = fr + precise_second / 86400.0
+
+            _, velocity1 = sat1.state_at(jd, tca_fr)
+            _, velocity2 = sat2.state_at(jd, tca_fr)
+
+            rel_velocity = relative_velocity(
+                velocity1,
+                velocity2
+            )
+
+            tca = start_time + timedelta(
+                seconds=precise_second
+            )
+
+            event = ConjunctionEvent(
+                sat1=sat1,
+                sat2=sat2,
+                distance_km=precise_distance,
+                relative_velocity_km_s=rel_velocity,
+                tca=tca
+            )
+
+            events.append(event)
+
+    events.sort(
+        key=lambda event: event.distance_km
+    )
+
+    return events
