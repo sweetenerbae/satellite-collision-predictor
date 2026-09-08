@@ -1,0 +1,8 @@
+.venv/
+.idea/
+__pycache__/
+*.py[cod]
+.env
+.pytest_cache/
+data/satellites.json
+data/active_satellites.json

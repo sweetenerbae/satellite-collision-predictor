@@ -1,0 +1,808 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Satellite Close Approach API",
+    "version": "0.2.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/conjunctions/status": {
+      "get": {
+        "tags": [
+          "Conjunctions"
+        ],
+        "summary": "Screening Status",
+        "operationId": "screening_status_conjunctions_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreeningStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/conjunctions": {
+      "get": {
+        "tags": [
+          "Conjunctions"
+        ],
+        "summary": "List Conjunctions",
+        "operationId": "list_conjunctions_conjunctions_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConjunctionResponse"
+                  },
+                  "title": "Response List Conjunctions Conjunctions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/conjunctions/{id}": {
+      "get": {
+        "tags": [
+          "Conjunctions"
+        ],
+        "summary": "Conjunction Detail",
+        "operationId": "conjunction_detail_conjunctions__id__get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConjunctionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/conjunctions/{id}/ephemeris": {
+      "get": {
+        "tags": [
+          "Conjunctions"
+        ],
+        "summary": "Conjunction Ephemeris",
+        "operationId": "conjunction_ephemeris_conjunctions__id__ephemeris_get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          },
+          {
+            "name": "seconds_before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1800,
+              "minimum": 1,
+              "default": 300,
+              "title": "Seconds Before"
+            }
+          },
+          {
+            "name": "seconds_after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1800,
+              "minimum": 1,
+              "default": 300,
+              "title": "Seconds After"
+            }
+          },
+          {
+            "name": "step_seconds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 600,
+              "minimum": 1,
+              "default": 10,
+              "title": "Step Seconds"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConjunctionEphemerisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/satellites": {
+      "get": {
+        "tags": [
+          "Satellites"
+        ],
+        "summary": "List Satellites",
+        "operationId": "list_satellites_satellites_get",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Query"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SatelliteResponse"
+                  },
+                  "title": "Response List Satellites Satellites Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/satellites/{norad_id}": {
+      "get": {
+        "tags": [
+          "Satellites"
+        ],
+        "summary": "Satellite Detail",
+        "operationId": "satellite_detail_satellites__norad_id__get",
+        "parameters": [
+          {
+            "name": "norad_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Norad Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SatelliteDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/satellites/{norad_id}/ephemeris": {
+      "get": {
+        "tags": [
+          "Satellites"
+        ],
+        "summary": "Satellite Ephemeris",
+        "operationId": "satellite_ephemeris_satellites__norad_id__ephemeris_get",
+        "parameters": [
+          {
+            "name": "norad_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Norad Id"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "title": "End"
+            }
+          },
+          {
+            "name": "step_seconds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 600,
+              "minimum": 1,
+              "default": 60,
+              "title": "Step Seconds"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EphemerisResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ConjunctionEphemerisResponse": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "screening_computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Screening Computed At"
+          },
+          "tca": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Tca"
+          },
+          "satellite_1": {
+            "$ref": "#/components/schemas/EphemerisResponse"
+          },
+          "satellite_2": {
+            "$ref": "#/components/schemas/EphemerisResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "screening_computed_at",
+          "tca",
+          "satellite_1",
+          "satellite_2"
+        ],
+        "title": "ConjunctionEphemerisResponse"
+      },
+      "ConjunctionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "satellite_1": {
+            "$ref": "#/components/schemas/SatelliteResponse"
+          },
+          "satellite_2": {
+            "$ref": "#/components/schemas/SatelliteResponse"
+          },
+          "miss_distance_km": {
+            "type": "number",
+            "title": "Miss Distance Km"
+          },
+          "relative_velocity_km_s": {
+            "type": "number",
+            "title": "Relative Velocity Km S"
+          },
+          "tca": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Tca"
+          },
+          "computed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Computed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "satellite_1",
+          "satellite_2",
+          "miss_distance_km",
+          "relative_velocity_km_s",
+          "tca"
+        ],
+        "title": "ConjunctionResponse"
+      },
+      "EphemerisResponse": {
+        "properties": {
+          "norad_id": {
+            "type": "integer",
+            "title": "Norad Id"
+          },
+          "frame": {
+            "type": "string",
+            "const": "TEME",
+            "title": "Frame",
+            "default": "TEME"
+          },
+          "time_scale": {
+            "type": "string",
+            "const": "UTC",
+            "title": "Time Scale",
+            "default": "UTC"
+          },
+          "position_unit": {
+            "type": "string",
+            "const": "km",
+            "title": "Position Unit",
+            "default": "km"
+          },
+          "velocity_unit": {
+            "type": "string",
+            "const": "km/s",
+            "title": "Velocity Unit",
+            "default": "km/s"
+          },
+          "propagation_model": {
+            "type": "string",
+            "const": "SGP4",
+            "title": "Propagation Model",
+            "default": "SGP4"
+          },
+          "element_epoch": {
+            "type": "string",
+            "title": "Element Epoch"
+          },
+          "computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Computed At"
+          },
+          "samples": {
+            "items": {
+              "$ref": "#/components/schemas/StateSample"
+            },
+            "type": "array",
+            "title": "Samples"
+          }
+        },
+        "type": "object",
+        "required": [
+          "norad_id",
+          "element_epoch",
+          "computed_at",
+          "samples"
+        ],
+        "title": "EphemerisResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "SatelliteDetailResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "norad_id": {
+            "type": "integer",
+            "title": "Norad Id"
+          },
+          "epoch": {
+            "type": "string",
+            "title": "Epoch"
+          },
+          "inclination_deg": {
+            "type": "number",
+            "title": "Inclination Deg"
+          },
+          "eccentricity": {
+            "type": "number",
+            "title": "Eccentricity"
+          },
+          "mean_motion_rev_day": {
+            "type": "number",
+            "title": "Mean Motion Rev Day"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "norad_id",
+          "epoch",
+          "inclination_deg",
+          "eccentricity",
+          "mean_motion_rev_day"
+        ],
+        "title": "SatelliteDetailResponse"
+      },
+      "SatelliteResponse": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "norad_id": {
+            "type": "integer",
+            "title": "Norad Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "norad_id"
+        ],
+        "title": "SatelliteResponse"
+      },
+      "ScreeningStatusResponse": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "ready",
+              "failed"
+            ],
+            "title": "State"
+          },
+          "is_running": {
+            "type": "boolean",
+            "title": "Is Running"
+          },
+          "last_updated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Updated At"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "window_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window Start"
+          },
+          "window_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Window End"
+          },
+          "object_count": {
+            "type": "integer",
+            "title": "Object Count"
+          },
+          "event_count": {
+            "type": "integer",
+            "title": "Event Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "state",
+          "is_running",
+          "last_updated_at",
+          "last_error",
+          "window_start",
+          "window_end",
+          "object_count",
+          "event_count"
+        ],
+        "title": "ScreeningStatusResponse"
+      },
+      "StateSample": {
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Time"
+          },
+          "position_km": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Position Km"
+          },
+          "velocity_km_s": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Velocity Km S"
+          }
+        },
+        "type": "object",
+        "required": [
+          "time",
+          "position_km",
+          "velocity_km_s"
+        ],
+        "title": "StateSample"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

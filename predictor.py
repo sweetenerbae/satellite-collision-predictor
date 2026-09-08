@@ -82,6 +82,9 @@ def candidate_pairs_at_time(
     fr,
     screening_radius_km
 ):
+    if len(satellites) < 2:
+        return set()
+
     positions = []
 
     for satellite in satellites:

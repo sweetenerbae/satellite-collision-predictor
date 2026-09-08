@@ -1,6 +1,8 @@
 import requests
 import json
 import os
+import time
+from pathlib import Path
 
 CELESTRAK_URL = (
     "https://celestrak.org/NORAD/elements/gp.php"
@@ -8,25 +10,37 @@ CELESTRAK_URL = (
 )
 
 CACHE_FILE = "data/active_satellites.json"
+CACHE_TTL_SECONDS = 2 * 60 * 60
 
 def fetch_satellites():
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, "r")as file:
+    cache_path = Path(__file__).resolve().parent / "satellites.json"
+
+    if is_cache_fresh(cache_path):
+        with cache_path.open("r", encoding="utf-8") as file:
             return json.load(file)
 
-    response = requests.get(CELESTRAK_URL, timeout=20)
+    response = requests.get(
+        "https://celestrak.org/NORAD/elements/gp.php?GROUP=STATIONS&FORMAT=JSON",
+        timeout=30
+    )
 
-    if response.status_code != 200:
-        print("CelesTrak error:", response.status_code)
-        print(response.text)
-        return []
+    response.raise_for_status()
 
-    satellites = response.json()
+    data = response.json()
 
-    os.makedirs("data", exist_ok=True)
+    if not isinstance(data, list) or not data:
+        raise ValueError("CelesTrak returned an empty or invalid catalog")
 
-    with open(CACHE_FILE, "w") as file:
-        json.dump(satellites, file)
+    temporary = cache_path.with_suffix(".json.tmp")
+    with temporary.open("w", encoding="utf-8") as file:
+        json.dump(data, file)
+    temporary.replace(cache_path)
 
-    return response.json()
+    return data
+def is_cache_fresh(cache_path: Path) -> bool:
+    if not cache_path.exists():
+        return False
 
+    cache_age_seconds = time.time() - cache_path.stat().st_mtime
+
+    return cache_age_seconds < CACHE_TTL_SECONDS
