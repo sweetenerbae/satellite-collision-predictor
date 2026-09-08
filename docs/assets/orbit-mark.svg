@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="-5 -5 33 33" role="img" aria-labelledby="title">
+  <title id="title">Satellite orbital mark</title>
+  <rect x="-5" y="-5" width="33" height="33" rx="8" fill="#080909"/>
+  <g fill="none" stroke="#edf0e8" stroke-width="1">
+    <circle cx="11.5" cy="11.5" r="6.5"/>
+    <ellipse cx="11.5" cy="11.5" rx="11.5" ry="3.5" transform="rotate(-45 11.5 11.5)"/>
+  </g>
+</svg>
