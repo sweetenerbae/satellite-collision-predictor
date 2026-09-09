@@ -60,6 +60,20 @@ class APITests(unittest.TestCase):
         detail = self.get(f'/satellites/{self.satellite.norad_id}')[1]
         self.assertEqual(detail['epoch'], self.satellite.epoch)
 
+    def test_above_me_contract_and_coordinates(self):
+        code, body = self.get('/above-me', {'latitude_deg': 55.7558, 'longitude_deg': 37.6173})
+        self.assertEqual(code, 200)
+        self.assertEqual(body['reference_frame'], 'TEME')
+        self.assertEqual(body['transformation_model'], 'GMST_APPROX')
+        self.assertEqual(body['observer_latitude_deg'], 55.7558)
+        for item in body['objects']:
+            self.assertGreaterEqual(item['elevation_deg'], 0)
+            self.assertLess(item['elevation_deg'], 91)
+            self.assertGreaterEqual(item['azimuth_deg'], 0)
+            self.assertLess(item['azimuth_deg'], 360)
+            self.assertGreater(item['range_km'], 0)
+        self.assertEqual(self.get('/above-me', {'latitude_deg': 91, 'longitude_deg': 0})[0], 422)
+
     def test_ephemeris_contract_and_inclusive_end(self):
         end = self.start + timedelta(seconds=125)
         query = {'start': self.start.isoformat(), 'end': end.isoformat(), 'step_seconds': 60}

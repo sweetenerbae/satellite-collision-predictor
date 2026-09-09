@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from api.routes.health import router as health_router
 from api.routes.conjunctions import router as conjunctions_router
 from api.routes.satellites import router as satellites_router
+from api.routes.above_me import router as above_me_router
 from services.catalog_service import catalog
 from services.snapshot_store import SnapshotStore
 from services.screening_service import screening_service
@@ -41,3 +42,4 @@ app = FastAPI(title="Satellite Close Approach API", version="0.2.0", lifespan=li
 app.include_router(health_router)
 app.include_router(conjunctions_router)
 app.include_router(satellites_router)
+app.include_router(above_me_router)

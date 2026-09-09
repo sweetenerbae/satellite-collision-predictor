@@ -535,10 +535,140 @@
           }
         }
       }
+    },
+    "/above-me": {
+      "get": {
+        "tags": [
+          "Above Me"
+        ],
+        "summary": "Above Me",
+        "operationId": "above_me_above_me_get",
+        "parameters": [
+          {
+            "name": "latitude_deg",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 90,
+              "minimum": -90,
+              "title": "Latitude Deg"
+            }
+          },
+          {
+            "name": "longitude_deg",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Longitude Deg"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AboveMeResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AboveMeObject": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "norad_id": {
+            "type": "integer",
+            "title": "Norad Id"
+          },
+          "azimuth_deg": {
+            "type": "number",
+            "title": "Azimuth Deg"
+          },
+          "elevation_deg": {
+            "type": "number",
+            "title": "Elevation Deg"
+          },
+          "range_km": {
+            "type": "number",
+            "title": "Range Km"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "norad_id",
+          "azimuth_deg",
+          "elevation_deg",
+          "range_km"
+        ],
+        "title": "AboveMeObject"
+      },
+      "AboveMeResponse": {
+        "properties": {
+          "computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Computed At"
+          },
+          "observer_latitude_deg": {
+            "type": "number",
+            "title": "Observer Latitude Deg"
+          },
+          "observer_longitude_deg": {
+            "type": "number",
+            "title": "Observer Longitude Deg"
+          },
+          "reference_frame": {
+            "type": "string",
+            "title": "Reference Frame",
+            "default": "TEME"
+          },
+          "transformation_model": {
+            "type": "string",
+            "title": "Transformation Model",
+            "default": "GMST_APPROX"
+          },
+          "objects": {
+            "items": {
+              "$ref": "#/components/schemas/AboveMeObject"
+            },
+            "type": "array",
+            "title": "Objects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "computed_at",
+          "observer_latitude_deg",
+          "observer_longitude_deg",
+          "objects"
+        ],
+        "title": "AboveMeResponse"
+      },
       "ConjunctionEphemerisResponse": {
         "properties": {
           "event_id": {
