@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 from pydantic import BaseModel
 
 
@@ -23,6 +23,7 @@ class EphemerisResponse(BaseModel):
 
 class ConjunctionEphemerisResponse(BaseModel):
     event_id: str
+    snapshot_id: Optional[str] = None
     screening_computed_at: datetime
     tca: datetime
     satellite_1: EphemerisResponse

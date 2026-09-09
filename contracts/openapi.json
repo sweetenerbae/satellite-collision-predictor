@@ -45,6 +45,79 @@
         }
       }
     },
+    "/conjunctions/page": {
+      "get": {
+        "tags": [
+          "Conjunctions"
+        ],
+        "summary": "Conjunction Page",
+        "operationId": "conjunction_page_conjunctions_page_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConjunctionPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/conjunctions": {
       "get": {
         "tags": [
@@ -74,6 +147,23 @@
               "minimum": 0,
               "default": 0,
               "title": "Offset"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
             }
           }
         ],
@@ -120,6 +210,23 @@
             "schema": {
               "type": "string",
               "title": "Id"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
             }
           }
         ],
@@ -198,6 +305,23 @@
               "minimum": 1,
               "default": 10,
               "title": "Step Seconds"
+            }
+          },
+          {
+            "name": "snapshot_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
             }
           }
         ],
@@ -421,6 +545,17 @@
             "type": "string",
             "title": "Event Id"
           },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          },
           "screening_computed_at": {
             "type": "string",
             "format": "date-time",
@@ -447,6 +582,77 @@
           "satellite_2"
         ],
         "title": "ConjunctionEphemerisResponse"
+      },
+      "ConjunctionPage": {
+        "properties": {
+          "snapshot_id": {
+            "type": "string",
+            "title": "Snapshot Id"
+          },
+          "computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Computed At"
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window Start"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window End"
+          },
+          "is_stale": {
+            "type": "boolean",
+            "title": "Is Stale"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "next_offset": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Offset"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConjunctionResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "computed_at",
+          "window_start",
+          "window_end",
+          "is_stale",
+          "total",
+          "offset",
+          "limit",
+          "next_offset",
+          "items"
+        ],
+        "title": "ConjunctionPage"
       },
       "ConjunctionResponse": {
         "properties": {
@@ -484,6 +690,27 @@
               }
             ],
             "title": "Computed At"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          },
+          "tca_location": {
+            "type": "string",
+            "enum": [
+              "interior",
+              "window_start",
+              "window_end"
+            ],
+            "title": "Tca Location",
+            "default": "interior"
           }
         },
         "type": "object",
@@ -628,6 +855,75 @@
         ],
         "title": "SatelliteResponse"
       },
+      "ScreeningParameters": {
+        "properties": {
+          "catalog_filter": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalog Filter"
+          },
+          "screened_object_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Screened Object Count"
+          },
+          "station_aliases": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/StationAlias"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Aliases"
+          },
+          "algorithm": {
+            "type": "string",
+            "title": "Algorithm"
+          },
+          "threshold_km": {
+            "type": "number",
+            "title": "Threshold Km"
+          },
+          "coarse_step_seconds": {
+            "type": "number",
+            "title": "Coarse Step Seconds"
+          },
+          "refinement_step_seconds": {
+            "type": "number",
+            "title": "Refinement Step Seconds"
+          },
+          "max_relative_velocity_km_s": {
+            "type": "number",
+            "title": "Max Relative Velocity Km S"
+          }
+        },
+        "type": "object",
+        "required": [
+          "algorithm",
+          "threshold_km",
+          "coarse_step_seconds",
+          "refinement_step_seconds",
+          "max_relative_velocity_km_s"
+        ],
+        "title": "ScreeningParameters"
+      },
       "ScreeningStatusResponse": {
         "properties": {
           "state": {
@@ -698,6 +994,38 @@
           "event_count": {
             "type": "integer",
             "title": "Event Count"
+          },
+          "parameters": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScreeningParameters"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          },
+          "is_stale": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Stale"
           }
         },
         "type": "object",
@@ -762,6 +1090,33 @@
           "velocity_km_s"
         ],
         "title": "StateSample"
+      },
+      "StationAlias": {
+        "properties": {
+          "norad_id": {
+            "type": "integer",
+            "title": "Norad Id"
+          },
+          "representative_norad_id": {
+            "type": "integer",
+            "title": "Representative Norad Id"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "structural_module",
+              "identical_elements"
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "norad_id",
+          "representative_norad_id",
+          "reason"
+        ],
+        "title": "StationAlias"
       },
       "ValidationError": {
         "properties": {

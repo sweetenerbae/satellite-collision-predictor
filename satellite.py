@@ -1,9 +1,11 @@
 from sgp4.api import Satrec
 from sgp4 import omm
 import math
+from copy import deepcopy
 
 class Satellite:
     def __init__(self, data):
+        self._omm_data = deepcopy(data)
         self.name = data["OBJECT_NAME"]
         self.norad_id = data["NORAD_CAT_ID"]
         self.epoch = data["EPOCH"]
@@ -12,6 +14,10 @@ class Satellite:
         self.mean_motion = data["MEAN_MOTION"]
         self.satrec = Satrec()
         omm.initialize(self.satrec, data)
+
+    @property
+    def omm_data(self):
+        return deepcopy(self._omm_data)
 
     def position_at(self, jd, fr):
         error, position, velocity = self.satrec.sgp4(jd, fr)

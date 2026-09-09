@@ -92,11 +92,14 @@ class APITests(unittest.TestCase):
         with patch('services.screening_service.find_conjunctions',return_value=[]):
             screening_service.run_screening(hours=1)
         updated=screening_service.get_last_updated_at()
+        parameters=screening_service.status()['parameters']
+        self.assertEqual(parameters['algorithm'],'sampled-local-minima-v2')
         self.assertEqual(self.get('/conjunctions'),(200,[]))
         with patch('services.screening_service.find_conjunctions',side_effect=RuntimeError('fail')):
             with self.assertRaises(RuntimeError):screening_service.run_screening(hours=1)
         self.assertEqual(screening_service.get_last_updated_at(),updated)
         self.assertEqual(screening_service.status()['state'],'failed')
+        self.assertEqual(screening_service.status()['parameters'],parameters)
         self.assertFalse(screening_service.is_running())
 
     def test_event_id_and_detail_match_list(self):
@@ -107,6 +110,7 @@ class APITests(unittest.TestCase):
         data=self.get('/conjunctions')[1][0]
         self.assertEqual(self.get('/conjunctions/'+data['id']),(200,data))
         self.assertNotIn('collision_probability',data)
+        self.assertEqual(data['tca_location'],'interior')
         self.assertEqual(self.get('/conjunctions/unknown')[0],404)
 
     def test_event_trajectories_keep_screened_elements(self):
@@ -124,6 +128,17 @@ class APITests(unittest.TestCase):
         self.assertEqual([s['time'] for s in body['satellite_1']['samples']],
                          [s['time'] for s in body['satellite_2']['samples']])
         self.assertEqual(self.get('/conjunctions/unknown/ephemeris')[0], 404)
+
+    def test_boundary_event_contract(self):
+        event = ConjunctionEvent(self.satellite, self.satellite, .5, 0., self.start,
+                                 tca_location="window_start")
+        with patch('services.screening_service.find_conjunctions', return_value=[event]):
+            screening_service.run_screening(hours=1)
+        code, events = self.get('/conjunctions')
+        self.assertEqual(code, 200)
+        self.assertEqual(events[0]['tca_location'], 'window_start')
+        code, status = self.get('/conjunctions/status')
+        self.assertEqual(status['parameters']['refinement_step_seconds'], 10)
 
     def test_bad_catalog_keeps_previous_snapshot(self):
         with patch('services.catalog_service.fetch_satellites',return_value=[]):

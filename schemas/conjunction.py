@@ -12,6 +12,25 @@ class ConjunctionResponse(BaseModel):
     relative_velocity_km_s: float
     tca: datetime
     computed_at: Optional[datetime] = None
+    snapshot_id: Optional[str] = None
+    tca_location: Literal["interior", "window_start", "window_end"] = "interior"
+
+
+class StationAlias(BaseModel):
+    norad_id: int
+    representative_norad_id: int
+    reason: Literal["structural_module", "identical_elements"]
+
+
+class ScreeningParameters(BaseModel):
+    catalog_filter: Optional[str] = None
+    screened_object_count: Optional[int] = None
+    station_aliases: Optional[list[StationAlias]] = None
+    algorithm: str
+    threshold_km: float
+    coarse_step_seconds: float
+    refinement_step_seconds: float
+    max_relative_velocity_km_s: float
 
 
 class ScreeningStatusResponse(BaseModel):
@@ -23,3 +42,19 @@ class ScreeningStatusResponse(BaseModel):
     window_end: Optional[datetime]
     object_count: int
     event_count: int
+    parameters: Optional[ScreeningParameters] = None
+    snapshot_id: Optional[str] = None
+    is_stale: Optional[bool] = None
+
+
+class ConjunctionPage(BaseModel):
+    snapshot_id: str
+    computed_at: datetime
+    window_start: datetime
+    window_end: datetime
+    is_stale: bool
+    total: int
+    offset: int
+    limit: int
+    next_offset: Optional[int]
+    items: list[ConjunctionResponse]

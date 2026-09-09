@@ -1,11 +1,14 @@
 import asyncio
 import logging
+import os
+from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from api.routes.health import router as health_router
 from api.routes.conjunctions import router as conjunctions_router
 from api.routes.satellites import router as satellites_router
 from services.catalog_service import catalog
+from services.snapshot_store import SnapshotStore
 from services.screening_service import screening_service
 
 logger = logging.getLogger(__name__)
@@ -24,6 +27,8 @@ async def update_loop():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    database = os.environ.get("SATELLITE_DB_PATH") or str(Path(__file__).resolve().parent / "data/screening.sqlite3")
+    await asyncio.to_thread(screening_service.configure_store, SnapshotStore(database))
     worker = asyncio.create_task(update_loop())
     try:
         yield  # Health and status are available while the initial calculation is running.
