@@ -8,3 +8,4 @@ class ConjunctionEvent:
     distance_km: float
     relative_velocity_km_s: float
     tca: datetime
+    tca_location: str = "interior"
