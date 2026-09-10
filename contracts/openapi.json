@@ -590,6 +590,63 @@
           }
         }
       }
+    },
+    "/scene": {
+      "get": {
+        "tags": [
+          "Orbital Scene"
+        ],
+        "summary": "Orbital Scene",
+        "operationId": "orbital_scene_scene_get",
+        "parameters": [
+          {
+            "name": "minutes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 180,
+              "minimum": 20,
+              "default": 100,
+              "title": "Minutes"
+            }
+          },
+          {
+            "name": "step_seconds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 300,
+              "minimum": 10,
+              "default": 60,
+              "title": "Step Seconds"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrbitalSceneResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -929,6 +986,63 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "OrbitalSceneResponse": {
+        "properties": {
+          "computed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Computed At"
+          },
+          "window_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window Start"
+          },
+          "window_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Window End"
+          },
+          "frame": {
+            "type": "string",
+            "const": "TEME",
+            "title": "Frame",
+            "default": "TEME"
+          },
+          "time_scale": {
+            "type": "string",
+            "const": "UTC",
+            "title": "Time Scale",
+            "default": "UTC"
+          },
+          "position_unit": {
+            "type": "string",
+            "const": "km",
+            "title": "Position Unit",
+            "default": "km"
+          },
+          "earth_equatorial_radius_km": {
+            "type": "number",
+            "title": "Earth Equatorial Radius Km",
+            "default": 6378.137
+          },
+          "objects": {
+            "items": {
+              "$ref": "#/components/schemas/SceneObject"
+            },
+            "type": "array",
+            "title": "Objects"
+          }
+        },
+        "type": "object",
+        "required": [
+          "computed_at",
+          "window_start",
+          "window_end",
+          "objects"
+        ],
+        "title": "OrbitalSceneResponse"
+      },
       "SatelliteDetailResponse": {
         "properties": {
           "name": {
@@ -984,6 +1098,64 @@
           "norad_id"
         ],
         "title": "SatelliteResponse"
+      },
+      "SceneObject": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "norad_id": {
+            "type": "integer",
+            "title": "Norad Id"
+          },
+          "samples": {
+            "items": {
+              "$ref": "#/components/schemas/SceneSample"
+            },
+            "type": "array",
+            "title": "Samples"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "norad_id",
+          "samples"
+        ],
+        "title": "SceneObject"
+      },
+      "SceneSample": {
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Time"
+          },
+          "position_km": {
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Position Km"
+          }
+        },
+        "type": "object",
+        "required": [
+          "time",
+          "position_km"
+        ],
+        "title": "SceneSample"
       },
       "ScreeningParameters": {
         "properties": {

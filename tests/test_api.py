@@ -74,6 +74,19 @@ class APITests(unittest.TestCase):
             self.assertGreater(item['range_km'], 0)
         self.assertEqual(self.get('/above-me', {'latitude_deg': 91, 'longitude_deg': 0})[0], 422)
 
+    def test_scene_contract_has_current_position_and_bounded_tracks(self):
+        code, body = self.get('/scene', {'minutes': 20, 'step_seconds': 60})
+        self.assertEqual(code, 200)
+        self.assertEqual(body['frame'], 'TEME')
+        self.assertEqual(body['position_unit'], 'km')
+        self.assertEqual(body['earth_equatorial_radius_km'], 6378.137)
+        self.assertEqual(len(body['objects']), 1)
+        samples = body['objects'][0]['samples']
+        self.assertGreaterEqual(len(samples), 21)
+        self.assertEqual(len({sample['time'] for sample in samples}), len(samples))
+        self.assertTrue(all(len(sample['position_km']) == 3 for sample in samples))
+        self.assertEqual(self.get('/scene', {'minutes': 19})[0], 422)
+
     def test_ephemeris_contract_and_inclusive_end(self):
         end = self.start + timedelta(seconds=125)
         query = {'start': self.start.isoformat(), 'end': end.isoformat(), 'step_seconds': 60}

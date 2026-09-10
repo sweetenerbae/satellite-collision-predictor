@@ -8,6 +8,7 @@ from api.routes.health import router as health_router
 from api.routes.conjunctions import router as conjunctions_router
 from api.routes.satellites import router as satellites_router
 from api.routes.above_me import router as above_me_router
+from api.routes.scene import router as scene_router
 from services.catalog_service import catalog
 from services.snapshot_store import SnapshotStore
 from services.screening_service import screening_service
@@ -43,3 +44,4 @@ app.include_router(health_router)
 app.include_router(conjunctions_router)
 app.include_router(satellites_router)
 app.include_router(above_me_router)
+app.include_router(scene_router)
