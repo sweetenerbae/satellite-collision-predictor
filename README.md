@@ -26,6 +26,19 @@
 данные в понятную картину сближений: какие объекты встретятся ближе всего,
 когда это произойдёт и какое расстояние их разделит.
 
+## Приложение
+
+<div align="center">
+<table>
+<tr>
+<td align="center"><img src="docs/screenshots/earth-overview.webp" width="240" alt="Экран Земли с орбитальными объектами"><br><sub>Земля и орбитальные объекты</sub></td>
+<td align="center"><img src="docs/screenshots/onboarding-earth.webp" width="240" alt="Первый экран онбординга"><br><sub>Онбординг: новый взгляд на Землю</sub></td>
+<td align="center"><img src="docs/screenshots/onboarding-conjunction.webp" width="240" alt="Экран онбординга о сближениях"><br><sub>Онбординг: прогноз сближений</sub></td>
+<td align="center"><img src="docs/screenshots/above-me-sky-concept.webp" width="240" alt="Концепт режима камеры, направленной на ночное небо"><br><sub>«Надо мной»: концепт вида камеры</sub></td>
+</tr>
+</table>
+</div>
+
 ## Один момент. Две траектории.
 
 В центре каждого события — пара объектов и момент их максимального сближения.
